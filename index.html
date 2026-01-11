@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeForge | Typography Design & Implementation Tool</title>
+    <meta name="description" content="A unified typography design tool bridging inspiration and implementation.">
+    
+    <!-- 
+      TypeForge Application 
+      Built by: Senior Front-End Architect (Aliriyaj007)
+      Version: 1.0.0
+      Tech Stack: HTML5, CSS3, Vanilla JS (ES6+)
+    -->
+
+    <style>
+        /* =========================================
+           1. CSS VARIABLES & THEME SYSTEM
+           ========================================= */
+        :root {
+            /* Core Dimensions */
+            --header-height: 64px;
+            --border-radius: 8px;
+            --border-radius-sm: 4px;
+            --spacing-unit: 8px;
+            --z-modal: 1000;
+            --z-dropdown: 900;
+
+            /* Default Theme (Light/Professional) */
+            --color-bg: #f5f5f5;
+            --color-surface: #ffffff;
+            --color-surface-variant: #f0f0f0;
+            --color-primary: #6200ea;
+            --color-primary-hover: #3700b3;
+            --color-text-main: #202124;
+            --color-text-secondary: #5f6368;
+            --color-border: #dadce0;
+            --color-success: #1e8e3e;
+            --color-danger: #d93025;
+            --shadow-sm: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --transition-speed: 0.2s;
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --color-bg: #121212;
+            --color-surface: #1e1e1e;
+            --color-surface-variant: #2c2c2c;
+            --color-primary: #bb86fc;
+            --color-primary-hover: #9965f4;
+            --color-text-main: #e8eaed;
+            --color-text-secondary: #9aa0a6;
+            --color-border: #3c4043;
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.5);
+        }
+
+        /* Sepia Theme */
+        [data-theme="sepia"] {
+            --color-bg: #f4ecd8;
+            --color-surface: #fdf6e3;
+            --color-surface-variant: #eee8d5;
+            --color-primary: #b58900;
+            --color-primary-hover: #946800;
+            --color-text-main: #433b32;
+            --color-text-secondary: #656b5e;
+            --color-border: #d3cbb8;
+        }
+
+        /* Ocean Theme */
+        [data-theme="ocean"] {
+            --color-bg: #e0f7fa;
+            --color-surface: #ffffff;
+            --color-primary: #006064;
+            --color-primary-hover: #00363a;
+            --color-text-main: #004d40;
+            --color-text-secondary: #00695c;
+        }
+
+        /* Forest Theme */
+        [data-theme="forest"] {
+            --color-bg: #e8f5e9;
+            --color-surface: #ffffff;
+            --color-primary: #2e7d32;
+            --color-primary-hover: #1b5e20;
+            --color-text-main: #1b5e20;
+            --color-border: #c8e6c9;
+        }
+
+        /* Royal Theme */
+        [data-theme="royal"] {
+            --color-bg: #f3e5f5;
+            --color-surface: #ffffff;
+            --color-primary: #7b1fa2;
+            --color-primary-hover: #4a148c;
+            --color-text-main: #4a148c;
+            --color-border: #e1bee7;
+        }
+
+        /* High Contrast Theme */
+        [data-theme="contrast"] {
+            --color-bg: #000000;
+            --color-surface: #000000;
+            --color-surface-variant: #1a1a1a;
+            --color-primary: #ffff00;
+            --color-primary-hover: #e6e600;
+            --color-text-main: #ffffff;
+            --color-text-secondary: #dddddd;
+            --color-border: #ffffff;
+        }
+
+        /* =========================================
+           2. RESET & BASE STYLES
+           ========================================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-ui);
+            background-color: var(--color-bg);
+            color: var(--color-text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+        
+        button { cursor: pointer; border: none; font-family: inherit; }
+        input, select, textarea { font-family: inherit; }
+        a { color: inherit; text-decoration: none; }
+        
+        /* Typography Utilities */
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-2 { gap: calc(var(--spacing-unit) * 2); }
+        .gap-4 { gap: calc(var(--spacing-unit) * 4); }
+        .text-sm { font-size: 0.875rem; }
+        .text-xs { font-size: 0.75rem; }
+        .font-bold { font-weight: 700; }
+
+        /* =========================================
+           3. COMPONENT STYLES
+           ========================================= */
+        
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border-radius: var(--border-radius-sm);
+            font-weight: 500;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background-color: var(--color-primary-hover);
+            box-shadow: var(--shadow-sm);
+        }
+        .btn-outlined {
+            background-color: transparent;
+            border: 1px solid var(--color-border);
+            color: var(--color-primary);
+        }
+        .btn-outlined:hover {
+            background-color: rgba(98, 0, 234, 0.04);
+        }
+        .btn-text {
+            background-color: transparent;
+            color: var(--color-primary);
+        }
+        .btn-text:hover { text-decoration: underline; }
+        
+        /* Inputs & Controls */
+        .control-group {
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--color-border);
+        }
+        .control-group:last-child { border-bottom: none; }
+        
+        .label {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--color-text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .input-field, .select-field {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-sm);
+            background-color: var(--color-surface);
+            color: var(--color-text-main);
+            font-size: 0.9rem;
+        }
+        .input-field:focus, .select-field:focus {
+            outline: 2px solid var(--color-primary);
+            border-color: transparent;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        input[type="range"] {
+            flex: 1;
+            accent-color: var(--color-primary);
+        }
+        .value-display {
+            width: 40px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+        }
+
+        /* =========================================
+           4. LAYOUT ARCHITECTURE
+           ========================================= */
+        
+        /* Header */
+        header {
+            height: var(--header-height);
+            background-color: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+        }
+        .brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .brand span { color: var(--color-primary); }
+        
+        /* Main View Container */
+        #app-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- Gallery View --- */
+        #gallery-view {
+            padding: 24px;
+            overflow-y: auto;
+            height: 100%;
+        }
+        .gallery-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+            align-items: center;
+            background: var(--color-surface);
+            padding: 16px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+        }
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .pair-card {
+            background-color: var(--color-surface);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        .pair-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .card-preview {
+            padding: 24px;
+            background: #fff; /* Always light for preview clarity unless context demands otherwise */
+            color: #000;
+            border-bottom: 1px solid #eee;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .card-info {
+            padding: 16px;
+            flex: 1;
+        }
+        .tags {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: var(--color-surface-variant);
+            color: var(--color-text-secondary);
+        }
+        .card-actions {
+            padding: 12px 16px;
+            background: var(--color-surface-variant);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .fav-btn { color: #ccc; font-size: 1.2rem; background: none; }
+        .fav-btn.active { color: #ffd700; }
+
+        /* --- Workshop View --- */
+        #workshop-view {
+            display: grid;
+            grid-template-columns: 320px 1fr 320px;
+            height: 100%;
+        }
+
+        /* Left Rail: Controls */
+        #controls-panel {
+            background-color: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        /* Center Stage: Preview */
+        #preview-panel {
+            background-color: var(--color-bg);
+            padding: 40px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .preview-context-bar {
+            margin-bottom: 24px;
+            background: var(--color-surface);
+            padding: 8px;
+            border-radius: 24px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            gap: 4px;
+        }
+        .ctx-btn {
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+            background: transparent;
+        }
+        .ctx-btn.active {
+            background: var(--color-primary);
+            color: #fff;
+        }
+
+        /* The Canvas */
+        #canvas-container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--color-surface); /* User selected background */
+            min-height: 800px;
+            box-shadow: var(--shadow-lg);
+            padding: 40px;
+            border-radius: 2px; /* Paper-like */
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        /* Right Rail: Implementation */
+        #code-panel {
+            background-color: var(--color-surface);
+            border-left: 1px solid var(--color-border);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        .panel-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--color-border);
+            font-weight: 600;
+            background: var(--color-surface-variant);
+        }
+        .code-block {
+            padding: 16px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            background: #282c34;
+            color: #abb2bf;
+            overflow-x: auto;
+            flex: 1;
+            white-space: pre-wrap;
+        }
+        .panel-actions {
+            padding: 16px;
+            border-top: 1px solid var(--color-border);
+            display: grid;
+            gap: 8px;
+        }
+
+        /* =========================================
+           5. PREVIEW COMPONENTS (Dynamic CSS)
+           ========================================= */
+        /* These styles are applied INSIDE the canvas container via JS */
+        .tf-hero { text-align: center; margin-bottom: 4rem; }
+        .tf-hero h1 { margin-bottom: 1rem; line-height: 1.2; }
+        .tf-hero p { max-width: 600px; margin: 0 auto; }
+        
+        .tf-article { margin-bottom: 4rem; }
+        .tf-article h2 { margin-bottom: 1rem; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
+        .tf-article h3 { margin-bottom: 0.5rem; margin-top: 1.5rem; }
+        .tf-article p { margin-bottom: 1rem; line-height: 1.6; }
+        .tf-blockquote {
+            border-left: 4px solid currentColor;
+            padding-left: 1rem;
+            font-style: italic;
+            opacity: 0.8;
+            margin: 1.5rem 0;
+        }
+
+        .tf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+        .tf-card {
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+        }
+        .tf-card h4 { margin-bottom: 0.5rem; }
+        .tf-card-meta { font-size: 0.85em; opacity: 0.7; }
+
+        /* Editable highlight */
+        [contenteditable]:focus {
+            outline: 2px dashed var(--color-primary);
+            background-color: rgba(98, 0, 234, 0.05);
+        }
+
+        /* =========================================
+           6. MODALS & UTILS
+           ========================================= */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
+            z-index: var(--z-modal);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal {
+            background: var(--color-surface);
+            width: 90%; max-width: 600px;
+            max-height: 90vh;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-lg);
+            display: flex; flex-direction: column;
+            transform: translateY(20px); transition: transform 0.2s;
+        }
+        .modal-overlay.open .modal { transform: translateY(0); }
+        .modal-header { padding: 16px 24px; border-bottom: 1px solid var(--color-border); font-weight: 700; display: flex; justify-content: space-between; }
+        .modal-body { padding: 24px; overflow-y: auto; }
+        .close-modal { background: none; font-size: 1.5rem; color: var(--color-text-secondary); }
+
+        /* Toast */
+        #toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: #323232; color: #fff;
+            padding: 12px 24px; border-radius: 4px;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+            z-index: 2000;
+        }
+        #toast.visible { opacity: 1; }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            #workshop-view { grid-template-columns: 280px 1fr; }
+            #code-panel { display: none; position: absolute; right: 0; top: 0; bottom: 0; width: 300px; z-index: 20; box-shadow: -2px 0 10px rgba(0,0,0,0.1); }
+            #code-panel.active { display: flex; }
+        }
+        @media (max-width: 768px) {
+            #workshop-view { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+            #controls-panel { max-height: 250px; border-right: none; border-bottom: 1px solid var(--color-border); }
+            .brand span:last-child { display: none; }
+            #preview-panel { padding: 16px; }
+            #canvas-container { padding: 20px; }
+        }
+
+        /* Print Styles */
+        @media print {
+            body * { visibility: hidden; }
+            #canvas-container, #canvas-container * { visibility: visible; }
+            #canvas-container { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; margin: 0; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="brand">
+            <!-- Icon: Hammer/Anvil metaphor -->
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-primary)"><path d="M6 9l6 6 6-6"/><path d="M12 3v14"/><path d="M8 21h8"/></svg>
+            <span>Type</span><span>Forge</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <button class="btn btn-text" id="theme-btn">Theme</button>
+            <button class="btn btn-text" id="guide-btn">Guide</button>
+            <div class="view-toggle btn-group" style="background:var(--color-surface-variant); padding:4px; border-radius:8px;">
+                <button class="btn btn-text text-xs" id="view-gallery" style="padding:4px 12px;">Gallery</button>
+                <button class="btn btn-primary text-xs" id="view-workshop" style="padding:4px 12px; box-shadow:none;">Workshop</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div id="app-content">
+        
+        <!-- View: Gallery -->
+        <main id="gallery-view">
+            <div class="gallery-toolbar">
+                <div class="flex gap-2" style="flex:1;">
+                    <input type="text" id="gallery-search" class="input-field" placeholder="Search fonts (e.g. Roboto)...">
+                </div>
+                <div class="flex gap-2">
+                    <select id="gallery-filter-mood" class="select-field">
+                        <option value="all">All Moods</option>
+                        <option value="Professional">Professional</option>
+                        <option value="Playful">Playful</option>
+                        <option value="Elegant">Elegant</option>
+                        <option value="Bold">Bold</option>
+                    </select>
+                    <select id="gallery-filter-case" class="select-field">
+                        <option value="all">All Use Cases</option>
+                        <option value="Editorial">Editorial</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Web App">Web App</option>
+                    </select>
+                </div>
+            </div>
+            <div id="gallery-grid" class="gallery-grid">
+                <!-- Cards injected by JS -->
+            </div>
+        </main>
+
+        <!-- View: Workshop -->
+        <main id="workshop-view" class="hidden">
+            
+            <!-- Left Rail: Controls -->
+            <aside id="controls-panel">
+                <div class="control-group">
+                    <label class="label">Font Pairing</label>
+                    <div class="flex gap-2">
+                        <div style="flex:1">
+                            <span class="text-xs">Headings</span>
+                            <select id="font-heading" class="select-field"></select>
+                        </div>
+                        <div style="width:32px; display:flex; align-items:flex-end; padding-bottom:8px;">
+                             <button id="btn-shuffle" title="Shuffle Pair" style="background:none; color:var(--color-primary);">⇄</button>
+                        </div>
+                        <div style="flex:1">
+                            <span class="text-xs">Body</span>
+                            <select id="font-body" class="select-field"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="label">Type Scale (Ratio: <span id="ratio-val">1.25</span>)</label>
+                    <input type="range" id="scale-ratio" min="1.067" max="1.618" step="0.01" value="1.25">
+                    <div class="flex justify-between text-xs text-secondary" style="margin-top:4px;">
+                        <span>Minor</span><span>Major</span>
+                    </div>
+                    <div style="margin-top:12px;">
+                        <span class="text-xs">Base Size</span>
+                        <div class="slider-container">
+                            <input type="range" id="scale-base" min="14" max="24" value="16">
+                            <span class="value-display" id="base-val">16px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="label">Micro-Typography</label>
+                    <div style="margin-bottom:12px;">
+                        <span class="text-xs">Line Height (Body)</span>
+                        <div class="slider-container">
+                            <input type="range" id="line-height" min="1.0" max="2.0" step="0.05" value="1.5">
+                            <span class="value-display" id="lh-val">1.5</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="text-xs">Letter Spacing</span>
+                        <div class="slider-container">
+                            <input type="range" id="letter-spacing" min="-0.05" max="0.2" step="0.01" value="0">
+                            <span class="value-display" id="ls-val">0em</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="label">Colors</label>
+                    <div class="flex items-center justify-between" style="margin-bottom:8px;">
+                        <span class="text-xs">Background</span>
+                        <input type="color" id="color-bg" value="#ffffff" style="border:none; width:40px; height:24px; cursor:pointer;">
+                    </div>
+                    <div class="flex items-center justify-between" style="margin-bottom:8px;">
+                        <span class="text-xs">Foreground</span>
+                        <input type="color" id="color-fg" value="#202124" style="border:none; width:40px; height:24px; cursor:pointer;">
+                    </div>
+                    <div class="flex items-center justify-between">
+                         <span class="text-xs">Contrast: <span id="contrast-score">AA</span></span>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label class="label">Measure</label>
+                    <div class="slider-container">
+                        <input type="range" id="measure-width" min="40ch" max="90ch" step="1ch" value="65ch">
+                        <span class="value-display" id="measure-val">65ch</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <button class="btn btn-primary" style="width:100%" id="save-draft-btn">Save Draft to Browser</button>
+                </div>
+            </aside>
+
+            <!-- Center Stage: Live Preview -->
+            <section id="preview-panel">
+                <div class="preview-context-bar">
+                    <button class="ctx-btn active" data-ctx="landing">Marketing</button>
+                    <button class="ctx-btn" data-ctx="article">Editorial</button>
+                    <button class="ctx-btn" data-ctx="app">Web App</button>
+                    <button class="ctx-btn" data-ctx="card">Profile Card</button>
+                </div>
+
+                <div id="canvas-container">
+                    <!-- Content injected via JS based on context -->
+                    <div class="tf-hero">
+                        <h1 contenteditable="true">See it. Refine it. Use it.</h1>
+                        <p contenteditable="true">TypeForge bridges the gap between inspiration and implementation.</p>
+                        <div style="margin-top:20px;">
+                            <button style="background:var(--color-primary); color:white; padding:10px 20px; border:none; border-radius:4px; cursor:pointer">Get Started</button>
+                        </div>
+                    </div>
+
+                    <div class="tf-article">
+                        <h2 contenteditable="true">Crafting the Perfect Scale</h2>
+                        <p contenteditable="true">A modular scale is like a musical scale for type. It creates harmonious relationships between font sizes. By choosing a ratio and a base size, you generate a set of numbers that guide your entire design system.</p>
+                        
+                        <h3 contenteditable="true">The Math Behind Beauty</h3>
+                        <p contenteditable="true">Whether it's the Golden Ratio (1.618) or the Perfect Fourth (1.333), math provides the invisible scaffold that holds good typography together.</p>
+                        
+                        <div class="tf-blockquote" contenteditable="true">
+                            "Typography is the craft of endowing human language with a durable visual form."
+                        </div>
+                    </div>
+                    
+                    <div class="tf-grid">
+                        <div class="tf-card">
+                            <h4 contenteditable="true">Feature One</h4>
+                            <p contenteditable="true" class="text-sm">Clean and readable interface designed for clarity.</p>
+                            <div class="tf-card-meta">Updated 2m ago</div>
+                        </div>
+                        <div class="tf-card">
+                            <h4 contenteditable="true">Feature Two</h4>
+                            <p contenteditable="true" class="text-sm">Real-time CSS generation for developers.</p>
+                            <div class="tf-card-meta">Updated 5m ago</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Rail: Code Output -->
+            <aside id="code-panel">
+                <div class="panel-header">CSS Output</div>
+                <div class="code-block" id="css-output">
+                    <!-- CSS Injected Here -->
+                </div>
+                <div class="panel-actions">
+                    <button class="btn btn-primary" id="copy-css-btn">Copy CSS</button>
+                    <button class="btn btn-outlined" id="export-img-btn">Export Image (PNG)</button>
+                    <button class="btn btn-text" id="print-btn">Print / PDF</button>
+                </div>
+                <div class="panel-actions" style="border-top:1px solid var(--color-border);">
+                    <button class="btn btn-outlined text-xs" id="export-config-btn">Backup Config (JSON)</button>
+                    <label class="btn btn-outlined text-xs" style="text-align:center; display:block;">
+                        Import Config <input type="file" id="import-config-btn" accept=".json" style="display:none;">
+                    </label>
+                </div>
+            </aside>
+
+            <!-- Mobile Toggle for Code -->
+            <button id="toggle-code-mobile" class="btn btn-primary" style="position:absolute; bottom:20px; right:20px; border-radius:50%; width:56px; height:56px; box-shadow:var(--shadow-lg); z-index:30; display:none;">&lt;/&gt;</button>
+        </main>
+    </div>
+
+    <!-- User Guide Modal -->
+    <div class="modal-overlay" id="guide-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <span>User Guide</span>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>What is TypeForge?</h3>
+                <p>TypeForge is a single-file, browser-based typography tool. It helps designers and developers create, test, and export typography systems without leaving the browser.</p>
+                <br>
+                <h3>How to Use</h3>
+                <ul style="padding-left:20px; line-height:1.6;">
+                    <li><strong>Gallery:</strong> Browse curated font pairs. Filter by mood or use case. Click "Forge" to load a pair.</li>
+                    <li><strong>Workshop:</strong> The main design area. Select fonts, adjust the scale, line-height, and colors.</li>
+                    <li><strong>Live Preview:</strong> Click on text in the center canvas to edit it directly. Toggle contexts (Marketing, App, etc.) to see type in different UI components.</li>
+                    <li><strong>Export:</strong> Copy the generated CSS or export an image for presentations.</li>
+                </ul>
+                <br>
+                <h3>Data Persistence</h3>
+                <p>Your current session is saved to your browser's local storage automatically. You can also export/import a JSON file for full backups.</p>
+                <br>
+                <hr style="border:0; border-top:1px solid var(--color-border); margin:20px 0;">
+                <p style="text-align:center; font-size:0.9rem;">
+                    Made with ❤️ by <a href="https://github.com/Aliriyaj007" target="_blank" style="color:var(--color-primary); font-weight:bold;">Aliriyaj007</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Picker Modal -->
+    <div class="modal-overlay" id="theme-modal">
+        <div class="modal" style="max-width:400px;">
+            <div class="modal-header">
+                <span>Select Theme</span>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button class="btn btn-outlined" onclick="App.setTheme('default')">Light</button>
+                <button class="btn btn-outlined" onclick="App.setTheme('dark')">Dark</button>
+                <button class="btn btn-outlined" onclick="App.setTheme('sepia')">Sepia</button>
+                <button class="btn btn-outlined" onclick="App.setTheme('ocean')">Ocean</button>
+                <button class="btn btn-outlined" onclick="App.setTheme('forest')">Forest</button>
+                <button class="btn btn-outlined" onclick="App.setTheme('royal')">Royal</button>
+                <button class="btn btn-outlined" onclick="App.setTheme('contrast')">High Contrast</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast">Action Successful</div>
+
+    <!-- HTML2Canvas Library for PNG Export (CDN fallback handled in logic) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script>
+        /**
+         * TypeForge Application Logic
+         * Architecture: Module Pattern (IIFE) to avoid global pollution
+         */
+        
+        // --- Constants & Data ---
+        const THEMES = ['default', 'dark', 'sepia', 'ocean', 'forest', 'royal', 'contrast'];
+        
+        // Curated Font List (Subset of Google Fonts for stability)
+        const FONT_LIST = [
+            "Roboto", "Open Sans", "Lato", "Montserrat", "Oswald", 
+            "Source Sans 3", "Playfair Display", "Merriweather", "Lora", 
+            "Poppins", "Raleway", "Ubuntu", "Nunito", "Rubik", 
+            "Slabo 27px", "Zilla Slab", "Fira Sans", "Libre Franklin", "Work Sans",
+            "Inter", "Manrope", "Space Grotesk", "DM Sans", "Barlow"
+        ];
+
+        // Curated Pairs for Gallery
+        const INITIAL_PAIRS = [
+            { id: 1, heading: "Playfair Display", body: "Source Sans 3", mood: "Elegant", case: "Editorial" },
+            { id: 2, heading: "Montserrat", body: "Open Sans", mood: "Professional", case: "Marketing" },
+            { id: 3, heading: "Oswald", body: "Roboto", mood: "Bold", case: "Marketing" },
+            { id: 4, heading: "Lora", body: "Lato", mood: "Elegant", case: "Editorial" },
+            { id: 5, heading: "Poppins", body: "Inter", mood: "Playful", case: "Web App" },
+            { id: 6, heading: "Zilla Slab", body: "Libre Franklin", mood: "Bold", case: "Web App" },
+            { id: 7, heading: "Space Grotesk", body: "DM Sans", mood: "Playful", case: "Logo" },
+            { id: 8, heading: "Merriweather", body: "Rubik", mood: "Neutral", case: "Editorial" },
+        ];
+
+        // --- State Management ---
+        const State = (function() {
+            let _state = {
+                view: 'gallery', // gallery | workshop
+                theme: 'default',
+                
+                // Workshop Settings
+                fontHeading: 'Playfair Display',
+                fontBody: 'Source Sans 3',
+                scaleRatio: 1.25,
+                scaleBase: 16,
+                lineHeight: 1.5,
+                letterSpacing: 0,
+                colorBg: '#ffffff',
+                colorFg: '#202124',
+                maxWidth: '65ch',
+                context: 'landing'
+            };
+
+            const listeners = [];
+
+            function notify() {
+                listeners.forEach(fn => fn(_state));
+                persist();
+            }
+
+            function persist() {
+                localStorage.setItem('typeforge_state', JSON.stringify(_state));
+            }
+
+            function load() {
+                const saved = localStorage.getItem('typeforge_state');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    _state = { ..._state, ...parsed };
+                }
+            }
+
+            return {
+                get: () => _state,
+                set: (updates) => {
+                    _state = { ..._state, ...updates };
+                    notify();
+                },
+                subscribe: (fn) => {
+                    listeners.push(fn);
+                    fn(_state); // Initial call
+                },
+                init: load
+            };
+        })();
+
+        // --- Utilities ---
+        const Utils = {
+            // Google Font Importer
+            loadGoogleFont: (fontName) => {
+                const formatted = fontName.replace(' ', '+');
+                // Check if already loaded to prevent duplicate requests
+                const existing = document.getElementById(`gf-${formatted}`);
+                if (existing) return;
+
+                const link = document.createElement('link');
+                link.id = `gf-${formatted}`;
+                link.href = `https://fonts.googleapis.com/css2?family=${formatted}:ital,wght@0,400;0,700;1,400&display=swap`;
+                link.rel = 'stylesheet';
+                document.head.appendChild(link);
+            },
+
+            calculateLuminance: (hex) => {
+                const rgb = parseInt(hex.slice(1), 16);
+                const r = (rgb >> 16) & 0xff;
+                const g = (rgb >>  8) & 0xff;
+                const b = (rgb >>  0) & 0xff;
+                const a = [r, g, b].map((v) => {
+                    v /= 255;
+                    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+                });
+                return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+            },
+
+            getContrastRatio: (hex1, hex2) => {
+                const lum1 = Utils.calculateLuminance(hex1);
+                const lum2 = Utils.calculateLuminance(hex2);
+                const brightest = Math.max(lum1, lum2);
+                const darkest = Math.min(lum1, lum2);
+                return (brightest + 0.05) / (darkest + 0.05);
+            },
+
+            showToast: (msg) => {
+                const toast = document.getElementById('toast');
+                toast.textContent = msg;
+                toast.classList.add('visible');
+                setTimeout(() => toast.classList.remove('visible'), 3000);
+            },
+
+            // Modular Scale Calculator
+            getScaleSizes: (base, ratio) => {
+                return {
+                    xs: base / ratio,
+                    sm: base,
+                    md: base * ratio,      // H3
+                    lg: base * ratio * ratio, // H2
+                    xl: base * ratio * ratio * ratio // H1
+                };
+            }
+        };
+
+        // --- UI Controller ---
+        const App = (function() {
+            
+            // Cache DOM elements
+            const els = {};
+
+            function initDOM() {
+                // General
+                els.appContent = document.getElementById('app-content');
+                els.toast = document.getElementById('toast');
+                
+                // Gallery
+                els.galleryView = document.getElementById('gallery-view');
+                els.galleryGrid = document.getElementById('gallery-grid');
+                els.searchInput = document.getElementById('gallery-search');
+                els.moodFilter = document.getElementById('gallery-filter-mood');
+                els.caseFilter = document.getElementById('gallery-filter-case');
+
+                // Workshop
+                els.workshopView = document.getElementById('workshop-view');
+                els.canvas = document.getElementById('canvas-container');
+                els.ctxBtns = document.querySelectorAll('.ctx-btn');
+                
+                // Controls
+                els.fontHeading = document.getElementById('font-heading');
+                els.fontBody = document.getElementById('font-body');
+                els.scaleRatio = document.getElementById('scale-ratio');
+                els.scaleBase = document.getElementById('scale-base');
+                els.lineHeight = document.getElementById('line-height');
+                els.letterSpacing = document.getElementById('letter-spacing');
+                els.colorBg = document.getElementById('color-bg');
+                els.colorFg = document.getElementById('color-fg');
+                els.measureWidth = document.getElementById('measure-width');
+                
+                // Display Values
+                els.ratioVal = document.getElementById('ratio-val');
+                els.baseVal = document.getElementById('base-val');
+                els.lhVal = document.getElementById('lh-val');
+                els.lsVal = document.getElementById('ls-val');
+                els.measureVal = document.getElementById('measure-val');
+                els.contrastScore = document.getElementById('contrast-score');
+
+                // Code
+                els.cssOutput = document.getElementById('css-output');
+
+                // Populate Font Selects
+                const fontOpts = FONT_LIST.map(f => `<option value="${f}">${f}</option>`).join('');
+                els.fontHeading.innerHTML = fontOpts;
+                els.fontBody.innerHTML = fontOpts;
+            }
+
+            function renderGallery() {
+                const filterText = els.searchInput.value.toLowerCase();
+                const filterMood = els.moodFilter.value;
+                const filterCase = els.caseFilter.value;
+
+                els.galleryGrid.innerHTML = INITIAL_PAIRS
+                    .filter(pair => {
+                        const matchText = pair.heading.toLowerCase().includes(filterText) || pair.body.toLowerCase().includes(filterText);
+                        const matchMood = filterMood === 'all' || pair.mood === filterMood;
+                        const matchCase = filterCase === 'all' || pair.case === filterCase;
+                        return matchText && matchMood && matchCase;
+                    })
+                    .map(pair => `
+                        <div class="pair-card">
+                            <div class="card-preview" style="font-family:'${pair.heading}', serif;">
+                                <h2 style="font-size:1.5rem; margin-bottom:0.5rem;">${pair.heading}</h2>
+                                <p style="font-family:'${pair.body}', sans-serif; font-size:0.9rem;">${pair.body}</p>
+                            </div>
+                            <div class="card-info">
+                                <div class="font-bold">${pair.heading} + ${pair.body}</div>
+                                <div class="tags">
+                                    <span class="tag">${pair.mood}</span>
+                                    <span class="tag">${pair.case}</span>
+                                </div>
+                            </div>
+                            <div class="card-actions">
+                                <button class="fav-btn">☆</button>
+                                <button class="btn btn-primary text-sm" onclick="App.forgePair('${pair.heading}', '${pair.body}')">
+                                    Forge
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+            }
+
+            function updateWorkshop(state) {
+                // 1. Load Fonts
+                Utils.loadGoogleFont(state.fontHeading);
+                Utils.loadGoogleFont(state.fontBody);
+
+                // 2. Update Canvas Styles
+                const sizes = Utils.getScaleSizes(state.scaleBase, state.scaleRatio);
+                
+                // Apply Root Variables for the Canvas scope
+                els.canvas.style.backgroundColor = state.colorBg;
+                els.canvas.style.color = state.colorFg;
+                els.canvas.style.fontFamily = `'${state.fontBody}', sans-serif`;
+                els.canvas.style.maxWidth = state.maxWidth;
+
+                // Apply Typography
+                const headings = els.canvas.querySelectorAll('h1, h2, h3, h4');
+                headings.forEach(h => h.style.fontFamily = `'${state.fontHeading}', serif`);
+
+                const h1 = els.canvas.querySelector('h1');
+                if(h1) { h1.style.fontSize = `${sizes.xl}px`; h1.style.letterSpacing = `${state.letterSpacing * 2}em`; }
+                
+                const h2s = els.canvas.querySelectorAll('h2');
+                h2s.forEach(h => { h.style.fontSize = `${sizes.lg}px`; h.style.letterSpacing = `${state.letterSpacing * 1.5}em`; });
+
+                const h3s = els.canvas.querySelectorAll('h3');
+                h3s.forEach(h => { h.style.fontSize = `${sizes.md}px`; h.style.letterSpacing = `${state.letterSpacing}em`; });
+
+                const pTags = els.canvas.querySelectorAll('p');
+                pTags.forEach(p => { 
+                    p.style.fontSize = `${sizes.sm}px`; 
+                    p.style.lineHeight = state.lineHeight;
+                    p.style.letterSpacing = `${state.letterSpacing}em`;
+                });
+                
+                const smalls = els.canvas.querySelectorAll('.text-sm, .tf-card-meta');
+                smalls.forEach(s => { s.style.fontSize = `${sizes.xs}px`; });
+
+                // Update Inputs UI
+                els.fontHeading.value = state.fontHeading;
+                els.fontBody.value = state.fontBody;
+                els.scaleRatio.value = state.scaleRatio;
+                els.scaleBase.value = state.scaleBase;
+                els.lineHeight.value = state.lineHeight;
+                els.letterSpacing.value = state.letterSpacing;
+                els.colorBg.value = state.colorBg;
+                els.colorFg.value = state.colorFg;
+                els.measureWidth.value = state.maxWidth;
+
+                // Update Labels
+                els.ratioVal.innerText = state.scaleRatio;
+                els.baseVal.innerText = `${state.scaleBase}px`;
+                els.lhVal.innerText = state.lineHeight;
+                els.lsVal.innerText = `${state.letterSpacing}em`;
+                els.measureVal.innerText = state.maxWidth;
+
+                // Update Contrast
+                const ratio = Utils.getContrastRatio(state.colorFg, state.colorBg);
+                els.contrastScore.innerText = ratio.toFixed(1);
+                els.contrastScore.style.color = ratio >= 4.5 ? 'var(--color-success)' : 'var(--color-danger)';
+
+                // 3. Generate CSS
+                generateCSS(state, sizes);
+                
+                // 4. Context Visibility
+                updateContext(state.context);
+            }
+
+            function updateContext(ctx) {
+                const hero = els.canvas.querySelector('.tf-hero');
+                const article = els.canvas.querySelector('.tf-article');
+                const grid = els.canvas.querySelector('.tf-grid');
+
+                if (ctx === 'card') {
+                    hero.classList.add('hidden');
+                    article.classList.add('hidden');
+                    grid.classList.remove('hidden');
+                    // Modify grid for single card view
+                    grid.style.gridTemplateColumns = '1fr';
+                    grid.style.maxWidth = '400px';
+                    grid.style.margin = '0 auto';
+                } else {
+                    hero.classList.remove('hidden');
+                    article.classList.remove('hidden');
+                    grid.classList.remove('hidden');
+                    grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(200px, 1fr))';
+                    grid.style.maxWidth = 'none';
+                    grid.style.margin = '0';
+                }
+            }
+
+            function generateCSS(state, sizes) {
+                const css = `
+/* TypeForge Export */
+@import url('https://fonts.googleapis.com/css2?family=${state.fontHeading.replace(' ', '+')}:wght@400;700&family=${state.fontBody.replace(' ', '+')}:wght@400;500&display=swap');
+
+:root {
+  --font-heading: '${state.fontHeading}', serif;
+  --font-body: '${state.fontBody}', sans-serif;
+  
+  --color-bg: ${state.colorBg};
+  --color-text: ${state.colorFg};
+  
+  /* Modular Scale (Base: ${state.scaleBase}px, Ratio: ${state.scaleRatio}) */
+  --text-xs: ${sizes.xs.toFixed(2)}px;
+  --text-sm: ${sizes.sm.toFixed(2)}px;
+  --text-md: ${sizes.md.toFixed(2)}px;
+  --text-lg: ${sizes.lg.toFixed(2)}px;
+  --text-xl: ${sizes.xl.toFixed(2)}px;
+  
+  --line-height: ${state.lineHeight};
+  --letter-spacing: ${state.letterSpacing}em;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  line-height: var(--line-height);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  line-height: 1.2;
+  letter-spacing: calc(var(--letter-spacing) * 1.5);
+}
+
+h1 { font-size: var(--text-xl); }
+h2 { font-size: var(--text-lg); }
+h3 { font-size: var(--text-md); }
+p { font-size: var(--text-sm); }
+small { font-size: var(--text-xs); }
+`;
+                els.cssOutput.textContent = css;
+            }
+
+            function setupEvents() {
+                // Navigation
+                document.getElementById('view-gallery').onclick = () => {
+                    State.set({ view: 'gallery' });
+                };
+                document.getElementById('view-workshop').onclick = () => {
+                    State.set({ view: 'workshop' });
+                };
+
+                // Modals
+                document.getElementById('guide-btn').onclick = () => document.getElementById('guide-modal').classList.add('open');
+                document.getElementById('theme-btn').onclick = () => document.getElementById('theme-modal').classList.add('open');
+                document.querySelectorAll('.close-modal').forEach(b => b.onclick = (e) => {
+                    e.target.closest('.modal-overlay').classList.remove('open');
+                });
+
+                // Gallery Filters
+                [els.searchInput, els.moodFilter, els.caseFilter].forEach(el => {
+                    el.addEventListener('input', renderGallery);
+                });
+
+                // Controls Input
+                const inputs = [
+                    { id: 'font-heading', key: 'fontHeading' },
+                    { id: 'font-body', key: 'fontBody' },
+                    { id: 'scale-ratio', key: 'scaleRatio' },
+                    { id: 'scale-base', key: 'scaleBase' },
+                    { id: 'line-height', key: 'lineHeight' },
+                    { id: 'letter-spacing', key: 'letterSpacing' },
+                    { id: 'color-bg', key: 'colorBg' },
+                    { id: 'color-fg', key: 'colorFg' },
+                    { id: 'measure-width', key: 'maxWidth' }
+                ];
+
+                inputs.forEach(item => {
+                    document.getElementById(item.id).addEventListener('input', (e) => {
+                        let val = e.target.value;
+                        if (e.target.type === 'range') val = parseFloat(val);
+                        State.set({ [item.key]: val });
+                    });
+                });
+
+                // Shuffle Button
+                document.getElementById('btn-shuffle').onclick = () => {
+                    const rHead = FONT_LIST[Math.floor(Math.random() * FONT_LIST.length)];
+                    let rBody = FONT_LIST[Math.floor(Math.random() * FONT_LIST.length)];
+                    while(rBody === rHead) rBody = FONT_LIST[Math.floor(Math.random() * FONT_LIST.length)];
+                    State.set({ fontHeading: rHead, fontBody: rBody });
+                };
+
+                // Context Buttons
+                els.ctxBtns.forEach(btn => {
+                    btn.onclick = () => {
+                        const ctx = btn.dataset.ctx;
+                        State.set({ context: ctx });
+                        // UI Update for buttons
+                        els.ctxBtns.forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    };
+                });
+
+                // Export / Copy
+                document.getElementById('copy-css-btn').onclick = () => {
+                    navigator.clipboard.writeText(els.cssOutput.textContent);
+                    Utils.showToast('CSS copied to clipboard');
+                };
+
+                document.getElementById('print-btn').onclick = () => window.print();
+
+                document.getElementById('export-img-btn').onclick = () => {
+                    if (typeof html2canvas !== 'undefined') {
+                        html2canvas(els.canvas).then(canvas => {
+                            const link = document.createElement('a');
+                            link.download = 'typeforge-design.png';
+                            link.href = canvas.toDataURL();
+                            link.click();
+                        });
+                    } else {
+                        Utils.showToast('html2canvas not loaded (Check internet)');
+                    }
+                };
+
+                document.getElementById('save-draft-btn').onclick = () => {
+                    State.set({}); // Trigger persist
+                    Utils.showToast('Draft saved locally');
+                };
+
+                // Import / Export JSON
+                document.getElementById('export-config-btn').onclick = () => {
+                    const data = JSON.stringify(State.get());
+                    const blob = new Blob([data], {type: 'application/json'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'typeforge-backup.json';
+                    a.click();
+                };
+
+                document.getElementById('import-config-btn').onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const data = JSON.parse(event.target.result);
+                            // Basic validation
+                            if (data.fontHeading && data.scaleBase) {
+                                State.set(data);
+                                Utils.showToast('Config imported successfully');
+                            } else {
+                                throw new Error('Invalid JSON');
+                            }
+                        } catch (err) {
+                            Utils.showToast('Error importing file');
+                        }
+                    };
+                    reader.readAsText(file);
+                };
+            }
+
+            // Public API
+            return {
+                init: () => {
+                    State.init();
+                    initDOM();
+                    setupEvents();
+                    
+                    // Initial State Load
+                    const st = State.get();
+                    App.setTheme(st.theme);
+                    
+                    // Subscribe to changes
+                    State.subscribe((state) => {
+                        // Toggle Views
+                        if (state.view === 'gallery') {
+                            els.galleryView.classList.remove('hidden');
+                            els.workshopView.classList.add('hidden');
+                        } else {
+                            els.galleryView.classList.add('hidden');
+                            els.workshopView.classList.remove('hidden');
+                        }
+                        updateWorkshop(state);
+                    });
+
+                    renderGallery();
+                },
+                forgePair: (head, body) => {
+                    State.set({ fontHeading: head, fontBody: body, view: 'workshop' });
+                },
+                setTheme: (themeName) => {
+                    document.documentElement.setAttribute('data-theme', themeName);
+                    State.set({ theme: themeName });
+                    document.getElementById('theme-modal').classList.remove('open');
+                }
+            };
+        })();
+
+        // Boot
+        window.addEventListener('DOMContentLoaded', App.init);
+
+    </script>
+</body>
+</html>
